@@ -11,6 +11,9 @@ parser.add_argument('-save', '--saveto', default='./workspace_pack', help='Workp
 parser.add_argument('-create', '--create', help='Create a navigator space for this directory')
 parser.add_argument('-delete', '--delete', help='Delete this navigator space')
 parser.add_argument('-work', '--work', help='Run Workspace')
+parser.add_argument('-install_conda', '--ic', help='Install Anaconda for this computer')
+parser.add_argument('-conda_create', '--conda', help='Create a conda venv')
+parser.add_argument('-conda_active', '--active', help='Create a conda venv')
 
 
 def install(packname, host, save_path):
@@ -60,6 +63,40 @@ def remove(packname, save_path):
 
 
 def update():
+    return 0
+
+
+def install_conda(version):
+    import os as ops
+    bit = myOS()[0]
+    os = myOS()[1]
+    if os == 'WindowsPE':
+        if bit == '64bit':
+            download_exec('https://repo.anaconda.com/archive/Anaconda3-2021.05-Windows-x86_64.exe', 'anaconda3', 'exe')
+        if bit == '32bit':
+            download_exec('https://repo.anaconda.com/archive/Anaconda3-2021.05-Windows-x86.exe', 'anaconda3', 'exe')
+        ops.system('anaconda3.exe')
+    elif os == 'ELF':
+        download_exec('https://repo.anaconda.com/archive/Anaconda3-2021.05-Linux-x86_64.sh', 'anaconda3', 'sh')
+        ops.system('chmod -r 777 anaconda3.sh')
+        ops.system('./anaconda3.sh')
+
+
+
+
+def conda_create(space_name):
+    # 安装虚拟环境
+    # conda create -n env_name python=3.9
+    os.system('conda create -n ' + space_name + ' python=3.9')
+    # 进入虚拟环境
+    # os.system('activate ' + version)
+    return 0
+
+
+def conda_active(space_name):
+    # 进入虚拟环境
+    import sys
+    print('conda activate ' + space_name)
     return 0
 
 
@@ -208,6 +245,32 @@ def download_here(url):
         outputColor('na', 'Successfully create Navigator MX!')
 
 
+def download_exec(url, filename, ext):
+    import requests,os
+    from contextlib import closing
+
+    with closing(requests.get(url, stream=True)) as response:
+        chunk_size = 1024
+        content_size = int(response.headers['content-length'])
+        """
+        需要根据 response.status_code 的不同添加不同的异常处理
+        """
+        # print('content_size', content_size, response.status_code, )
+        progress = ProgressBar(filename
+                               , total=content_size
+                               , unit="KB"
+                               , chunk_size=chunk_size
+                               , run_status="Downloading..."
+                               , fin_status="Download Complete")
+        # chunk_size = chunk_size < content_size and chunk_size or content_size
+        with open(filename+'.'+ext, 'wb') as f:
+            for data in response.iter_content(chunk_size=chunk_size):
+                f.write(data)
+                progress.refresh(count=len(data))
+
+        outputColor('na', 'Successfully downloaded ' + filename + '.' + ext + '!')
+
+
 def getContent(url):
     import requests
     response = requests.get(url)
@@ -298,10 +361,16 @@ class ProgressBar(object):
 
 if __name__ == '__main__':
     import sys
-    # pyinstall -F -c nwpm.py
+    # pyinstaller -F nwpm.py
     # print('Welcome to Navigator Workspace Pack Manager!')
     args = parser.parse_args()
-    if args.install is not None:
+    if args.conda is not None:
+        conda_create(args.conda)
+        sys.exit()
+    elif args.active is not None:
+        conda_active(args.active)
+        sys.exit()
+    elif args.install is not None:
         install(args.install, args.host, args.saveto)
         sys.exit()
     elif args.remove is not None:
@@ -315,4 +384,7 @@ if __name__ == '__main__':
         sys.exit()
     elif args.work is not None:
         work(args.work)
+        sys.exit()
+    elif args.ic is not None:
+        install_conda(args.ic)
         sys.exit()
