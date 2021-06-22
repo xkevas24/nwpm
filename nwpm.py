@@ -6,7 +6,7 @@ parser = argparse.ArgumentParser(description='Navigator MX Workpack Manager')
 parser.add_argument('-uri', '--host', default='https://nwpm.nvcloud.org/', help='Download mirror from nwpm')
 parser.add_argument('-install', '--install', help='Workpack Install')
 parser.add_argument('-remove', '--remove', help='Workpack Remove')
-# parser.add_argument('-u', '--update', help='Workpack Update')
+parser.add_argument('-update', '--update', help='Workpack Update')
 parser.add_argument('-save', '--saveto', default='./workspace_pack', help='Workpack Update')
 parser.add_argument('-create', '--create', help='Create a navigator space for this directory')
 parser.add_argument('-delete', '--delete', help='Delete this navigator space')
@@ -80,8 +80,6 @@ def install_conda(version):
         download_exec('https://repo.anaconda.com/archive/Anaconda3-2021.05-Linux-x86_64.sh', 'anaconda3', 'sh')
         ops.system('chmod -r 777 anaconda3.sh')
         ops.system('./anaconda3.sh')
-
-
 
 
 def conda_create(space_name):
@@ -359,6 +357,11 @@ class ProgressBar(object):
         print(self.__get_info(), end=end_str, )
 
 
+def self_update():
+
+    return 0
+
+
 if __name__ == '__main__':
     import sys
     # pyinstaller -F nwpm.py
@@ -387,4 +390,7 @@ if __name__ == '__main__':
         sys.exit()
     elif args.ic is not None:
         install_conda(args.ic)
+        sys.exit()
+    elif args.update is not None:
+        self_update(args.update)
         sys.exit()
